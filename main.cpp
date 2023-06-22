@@ -1,14 +1,38 @@
 #include <iostream>
 #include <eigen3/Eigen/Dense>
 #include "color_utility.hpp"
+#include "ray.h"
+
+using color = Eigen::Vector3d; 
+using point3 = Eigen::Vector3d; 
+
+color ray_color(const Ray& r){
+  // This function linearly blends white and blue depending on the heighet ofthe y coordinate after normalizing the ray direction.
+  // returns the background color
+  Eigen::Vector3d unit_direction = r.direction().normalized();
+  auto t = 0.5 * (unit_direction.y() + 1.0);
+  return (1.0 - t) * color(1.0,1.0,1.0) + t * color(0.5, 0.7, 1.0);
+}
 
 
 int main()
 {
   // ppm image size
+  const auto aspect_ratio = 16.0 / 9.0;
+  const int image_width = 400;
+  const int image_height = static_cast<int>(image_width / aspect_ratio);
 
-  const int image_width = 256;
-  const int image_height = 256;
+
+  // camera
+
+  auto viewport_height = 2.0;
+  auto viewport_width = aspect_ratio * viewport_height;
+  auto focal_length = 1.0;
+
+  auto origin = point3(0,0,0);
+  auto horizontal = Eigen::Vector3d(viewport_width, 0, 0);
+  auto vertical = Eigen::Vector3d(0, viewport_height, 0);
+  auto lower_left_corner = origin - horizontal/2 - vertical/2 - Eigen::Vector3d(0,0,focal_length);
 
   //render image
 
@@ -19,12 +43,10 @@ int main()
     std::cerr << "\rScanlines remaining: " << j << ' ' << std::flush;
     for(int i = 0; i < image_width; ++i)
     {
-      auto r = double(i) / (image_width-1);
-      auto g = double(j) / (image_height-1);
-      auto b = 0.25;
-
-      Eigen::Vector3d color(r,g,b);
-
+      auto u = double(i) / (image_width-1);
+      auto v = double(j) / (image_height-1);
+      Ray r(origin, lower_left_corner + u*horizontal + v*vertical - origin);
+      color color = ray_color(r);
       write_color(std::cout, color);
 
     }
