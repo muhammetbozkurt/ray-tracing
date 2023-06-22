@@ -6,14 +6,25 @@
 using color = Eigen::Vector3d; 
 using point3 = Eigen::Vector3d; 
 
+bool hit_sphere(const point3& center, double radius, const Ray& ray){
+  Eigen::Vector3d oc =  ray.origin() - center;
+  auto a = ray.direction().dot(ray.direction());
+  auto b = 2.0 - oc.dot(ray.direction());
+  auto c = oc.dot(oc) - radius * radius;
+  auto discriminant = b*b - 4*a*c;
+  return discriminant > 0;
+}
+
 color ray_color(const Ray& r){
   // This function linearly blends white and blue depending on the heighet ofthe y coordinate after normalizing the ray direction.
   // returns the background color
+  if (hit_sphere(Eigen::Vector3d(0,0,-1), 0.5, r)) {
+    return color(1,0,0);
+  }
   Eigen::Vector3d unit_direction = r.direction().normalized();
   auto t = 0.5 * (unit_direction.y() + 1.0);
   return (1.0 - t) * color(1.0,1.0,1.0) + t * color(0.5, 0.7, 1.0);
 }
-
 
 int main()
 {
