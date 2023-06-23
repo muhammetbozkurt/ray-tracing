@@ -6,23 +6,29 @@
 using color = Eigen::Vector3d; 
 using point3 = Eigen::Vector3d; 
 
-bool hit_sphere(const point3& center, double radius, const Ray& ray){
+double hit_sphere(const point3& center, double radius, const Ray& ray){
   Eigen::Vector3d oc =  ray.origin() - center;
   auto a = ray.direction().dot(ray.direction());
-  auto b = 2.0 - oc.dot(ray.direction());
+  auto b = 2.0 * oc.dot(ray.direction());
   auto c = oc.dot(oc) - radius * radius;
   auto discriminant = b*b - 4*a*c;
-  return discriminant > 0;
+  if (discriminant < 0) {
+    return -1.0;
+  } else {
+    return (-b - sqrt(discriminant) ) / (2.0*a);
+  }
 }
 
 color ray_color(const Ray& r){
   // This function linearly blends white and blue depending on the heighet ofthe y coordinate after normalizing the ray direction.
   // returns the background color
-  if (hit_sphere(Eigen::Vector3d(0,0,-1), 0.5, r)) {
-    return color(1,0,0);
-  }
+  auto t = hit_sphere(point3(0,0,-1), 0.5, r);
+    if (t > 0.0) {
+        Eigen::Vector3d N = (r.at(t) - Eigen::Vector3d(0,0,-1)).normalized();
+        return 0.5*color(N.x()+1, N.y()+1, N.z()+1);
+    }
   Eigen::Vector3d unit_direction = r.direction().normalized();
-  auto t = 0.5 * (unit_direction.y() + 1.0);
+  t = 0.5 * (unit_direction.y() + 1.0);
   return (1.0 - t) * color(1.0,1.0,1.0) + t * color(0.5, 0.7, 1.0);
 }
 
@@ -40,10 +46,10 @@ int main()
   auto viewport_width = aspect_ratio * viewport_height;
   auto focal_length = 1.0;
 
-  auto origin = point3(0,0,0);
+  auto origin = point3(0.0,0.0,0.0);
   auto horizontal = Eigen::Vector3d(viewport_width, 0, 0);
   auto vertical = Eigen::Vector3d(0, viewport_height, 0);
-  auto lower_left_corner = origin - horizontal/2 - vertical/2 - Eigen::Vector3d(0,0,focal_length);
+  point3 lower_left_corner = origin - horizontal/2 - vertical/2 - Eigen::Vector3d(0,0,focal_length);
 
   //render image
 
@@ -51,7 +57,7 @@ int main()
 
   for (int j =  image_height-1 ; j >= 0; --j)
   {
-    std::cerr << "\rScanlines remaining: " << j << ' ' << std::flush;
+    // std::cerr << "\rScanlines remaining: " << j << ' ' << std::flush;
     for(int i = 0; i < image_width; ++i)
     {
       auto u = double(i) / (image_width-1);
@@ -59,7 +65,6 @@ int main()
       Ray r(origin, lower_left_corner + u*horizontal + v*vertical - origin);
       color color = ray_color(r);
       write_color(std::cout, color);
-
     }
   }
   std::cerr << "\nDone.\n";
