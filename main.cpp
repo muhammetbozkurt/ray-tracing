@@ -2,21 +2,22 @@
 #include <eigen3/Eigen/Dense>
 #include "color_utility.hpp"
 #include "ray.h"
+#include <cmath>
 
 using color = Eigen::Vector3d; 
 using point3 = Eigen::Vector3d; 
 
 double hit_sphere(const point3& center, double radius, const Ray& ray){
   Eigen::Vector3d oc =  ray.origin() - center;
-  auto a = ray.direction().dot(ray.direction());
-  auto b = 2.0 * oc.dot(ray.direction());
-  auto c = oc.dot(oc) - radius * radius;
-  auto discriminant = b*b - 4*a*c;
+  auto a = std::pow(ray.direction().norm(), 2);
+  auto half_b = oc.dot(ray.direction());
+  auto c = std::pow(oc.norm(), 2) - radius * radius;
+  auto discriminant = half_b*half_b - a*c;
   if (discriminant < 0) {
     return -1.0;
   } else {
     //first t value that intersects the sphere
-    return (-b - sqrt(discriminant) ) / (2.0*a);
+    return (-half_b - sqrt(discriminant) ) / a;
   }
 }
 
