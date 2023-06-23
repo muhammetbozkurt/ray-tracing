@@ -15,6 +15,7 @@ double hit_sphere(const point3& center, double radius, const Ray& ray){
   if (discriminant < 0) {
     return -1.0;
   } else {
+    //first t value that intersects the sphere
     return (-b - sqrt(discriminant) ) / (2.0*a);
   }
 }
