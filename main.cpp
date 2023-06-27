@@ -1,11 +1,11 @@
-#include <iostream>
-#include <eigen3/Eigen/Dense>
-#include "color_utility.hpp"
-#include "ray.h"
-#include <cmath>
+#include "rtweekend.h"
 
-using color = Eigen::Vector3d; 
-using point3 = Eigen::Vector3d; 
+#include "hittable_list.h"
+#include "sphere.h"
+#include "color_utility.hpp"
+
+#include <iostream>
+#include <cmath>
 
 double hit_sphere(const point3& center, double radius, const Ray& ray){
   Eigen::Vector3d oc =  ray.origin() - center;
@@ -21,16 +21,13 @@ double hit_sphere(const point3& center, double radius, const Ray& ray){
   }
 }
 
-color ray_color(const Ray& r){
-  // This function linearly blends white and blue depending on the heighet ofthe y coordinate after normalizing the ray direction.
-  // returns the background color
-  auto t = hit_sphere(point3(0,0,-1), 0.5, r);
-    if (t > 0.0) {
-        Eigen::Vector3d N = (r.at(t) - Eigen::Vector3d(0,0,-1)).normalized();
-        return 0.5*color(N.x()+1, N.y()+1, N.z()+1);
-    }
+color ray_color(const Ray& r, const Hittable& world) {
+  hit_record rec;
+  if (world.hit(r, 0, infinity, rec)) {
+      return 0.5 * (rec.normal + color(1,1,1));
+  }
   Eigen::Vector3d unit_direction = r.direction().normalized();
-  t = 0.5 * (unit_direction.y() + 1.0);
+  auto t = 0.5*(unit_direction.y() + 1.0);
   return (1.0 - t) * color(1.0,1.0,1.0) + t * color(0.5, 0.7, 1.0);
 }
 
@@ -41,6 +38,10 @@ int main()
   const int image_width = 400;
   const int image_height = static_cast<int>(image_width / aspect_ratio);
 
+  // World
+    Hittable_list world;
+    world.add(make_shared<Sphere>(point3(0,0,-1), 0.5));
+    world.add(make_shared<Sphere>(point3(0,-100.5,-1), 100));
 
   // camera
 
@@ -65,8 +66,8 @@ int main()
       auto u = double(i) / (image_width-1);
       auto v = double(j) / (image_height-1);
       Ray r(origin, lower_left_corner + u*horizontal + v*vertical - origin);
-      color color = ray_color(r);
-      write_color(std::cout, color);
+      color pixel_color = ray_color(r, world);
+      write_color(std::cout, pixel_color);
     }
   }
   std::cerr << "\nDone.\n";
