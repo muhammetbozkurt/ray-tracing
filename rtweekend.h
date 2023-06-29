@@ -43,6 +43,24 @@ inline double clamp(double x, double min, double max) {
     if (x > max) return max;
     return x;
 }
+inline static Eigen::Vector3d random_vector() {
+    return Eigen::Vector3d(random_double(), random_double(), random_double());
+}
+
+inline static Eigen::Vector3d random_vector(double min, double max) {
+    return Eigen::Vector3d(random_double(min,max), random_double(min,max), random_double(min,max));
+}
+
+
+Eigen::Vector3d random_in_unit_sphere() {
+    while (true) {
+        auto p = random_vector(-1,1);
+        if (std::pow(p.norm(), 2)  >= 1) continue;
+        return p;
+    }
+}
+
+
 // Common Headers
 
 #include "ray.h"

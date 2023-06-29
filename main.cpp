@@ -22,10 +22,18 @@ double hit_sphere(const point3& center, double radius, const Ray& ray){
   }
 }
 
-color ray_color(const Ray& r, const Hittable& world) {
+color ray_color(const Ray& r, const Hittable& world, int depth) {
   hit_record rec;
+
+  // If we've exceeded the ray bounce limit, no more light is gathered.
+  if (depth <= 0)
+    return color(0,0,0);
+
+  // if the ray hits the any sphere, light needs to lose its power/brightness (in our example 0.5)
+  // and the ray needs to be reflected (recursive call)
   if (world.hit(r, 0, infinity, rec)) {
-      return 0.5 * (rec.normal + color(1,1,1));
+      point3 target = rec.point + rec.normal + random_in_unit_sphere();
+      return 0.5 * ray_color(Ray(rec.point, target - rec.point), world, depth-1);
   }
   Eigen::Vector3d unit_direction = r.direction().normalized();
   auto t = 0.5*(unit_direction.y() + 1.0);
@@ -39,6 +47,7 @@ int main()
   const int image_width = 400;
   const int image_height = static_cast<int>(image_width / aspect_ratio);
   const int samples_per_pixel = 100;
+  const int max_depth = 50;
 
   // World
     Hittable_list world;
