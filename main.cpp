@@ -69,7 +69,7 @@ int main()
         auto u = (i + random_double()) / (image_width-1);
         auto v = (j + random_double()) / (image_height-1);
         Ray r = cam.get_ray(u, v);
-        pixel_color += ray_color(r, world);
+        pixel_color += ray_color(r, world, max_depth);
       }
       write_color(std::cout, pixel_color, samples_per_pixel);
     }
