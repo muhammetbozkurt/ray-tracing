@@ -61,6 +61,11 @@ Eigen::Vector3d random_in_unit_sphere() {
 }
 
 
+Eigen::Vector3d random_unit_vector() {
+    return random_in_unit_sphere().normalized();
+}
+
+
 // Common Headers
 
 #include "ray.h"

@@ -31,8 +31,8 @@ color ray_color(const Ray& r, const Hittable& world, int depth) {
 
   // if the ray hits the any sphere, light needs to lose its power/brightness (in our example 0.5)
   // and the ray needs to be reflected (recursive call)
-  if (world.hit(r, 0, infinity, rec)) {
-      point3 target = rec.point + rec.normal + random_in_unit_sphere();
+  if (world.hit(r, 0.001, infinity, rec)) {
+      point3 target = rec.point + rec.normal + random_unit_vector();
       return 0.5 * ray_color(Ray(rec.point, target - rec.point), world, depth-1);
   }
   Eigen::Vector3d unit_direction = r.direction().normalized();
